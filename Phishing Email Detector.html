@@ -1,0 +1,265 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Phishing Email Detector</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: single centered column of numbered cards, same pattern as the password analyzer */
+:root{--bg:#f4f7fc;--card:#fff;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--accent:#2563eb;--accent-bg:#eff4ff;--ok:#16a34a;--bad:#dc2626;--on-accent:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--card:#131c2e;--text:#e6ecf7;--muted:#8fa0ba;--line:#243049;--accent:#6ea0ff;--accent-bg:#1a2744;--ok:#4ade80;--bad:#f87171;--on-accent:#0b1220;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b1220;--card:#131c2e;--text:#e6ecf7;--muted:#8fa0ba;--line:#243049;--accent:#6ea0ff;--accent-bg:#1a2744;--ok:#4ade80;--bad:#f87171;--on-accent:#0b1220;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:720px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-size:1.6rem;margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px;min-width:0}
+h2{font-size:1rem;margin:0 0 12px}
+label{font-size:.85rem;color:var(--muted);display:block;margin-bottom:6px}
+textarea{width:100%;min-height:130px;resize:vertical;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;font-size:.95rem}
+textarea:focus,button:focus-visible{outline:2px solid var(--accent);border-color:transparent}
+button{padding:11px 16px;border:0;border-radius:10px;background:var(--accent);color:var(--on-accent);font-size:.95rem;font-weight:600;cursor:pointer}
+button.ghost{background:var(--accent-bg);color:var(--accent)}
+button.small{padding:7px 12px;font-size:.82rem}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.meter{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin:16px 0 8px}
+.meter div{height:100%;width:0;border-radius:99px;transition:width .3s,background .3s}
+.stats{display:flex;justify-content:space-between;font-size:.9rem;flex-wrap:wrap;gap:6px}
+.label{font-weight:700}
+ul{list-style:none;margin:12px 0 0;padding:0}
+li{display:flex;gap:8px;align-items:flex-start;padding:5px 0;font-size:.92rem}
+.ic{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:.7rem;color:var(--on-accent);margin-top:1px}
+.ic.y{background:var(--ok)}.ic.n{background:var(--bad)}
+.sub2{font-size:.8rem;color:var(--muted);margin:16px 0 6px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+.sug{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px;margin-top:8px;flex-wrap:wrap}
+.sug code{font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all;font-size:.85rem;min-width:0}
+.flags{font-size:.8rem;font-weight:600}
+.flags.bad{color:var(--bad)}.flags.ok{color:var(--ok)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;padding:3px 9px;border-radius:99px;background:var(--accent-bg);color:var(--accent)}
+.chip.hot{background:color-mix(in srgb,var(--bad) 15%,transparent);color:var(--bad)}
+.chip.cool{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.tag{display:inline-block;background:var(--accent-bg);color:var(--accent);font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:99px;margin-left:6px}
+.scroll{overflow-x:auto}
+table.cm{border-collapse:separate;border-spacing:6px;margin:0 auto;font-size:.9rem}
+table.cm th{font-weight:600;color:var(--muted);font-size:.78rem;padding:4px 8px;text-align:center}
+table.cm th.row{text-align:right}
+table.cm td{min-width:110px;text-align:center;padding:14px 8px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+table.cm td b{display:block;font-size:1.5rem;font-variant-numeric:tabular-nums}
+table.cm td span{font-size:.72rem;color:var(--muted)}
+table.cm td.good{background:var(--accent-bg);border-color:transparent}
+table.cm td.err.has{background:color-mix(in srgb,var(--bad) 15%,transparent);border-color:transparent}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-top:16px}
+.metric{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.metric b{display:block;font-size:1.3rem;font-variant-numeric:tabular-nums}
+.metric span{font-size:.78rem;color:var(--muted)}
+.note{font-size:.82rem;color:var(--muted);margin:12px 0 0}
+</style>
+
+<div class="wrap">
+  <h1>Phishing Email Detector</h1>
+  <p class="sub">Paste an email to see its URL and keyword signals, get a Phishing or Safe verdict, and check how accurate the model is.</p>
+
+  <div class="card">
+    <h2>1. Analyze</h2>
+    <label for="mail">Email text</label>
+    <textarea id="mail" placeholder="Paste the email subject and body here"></textarea>
+    <div class="btns">
+      <button class="ghost small" id="ex1" type="button">Phishing example</button>
+      <button class="ghost small" id="ex2" type="button">Safe example</button>
+      <button class="ghost small" id="ex3" type="button">Tricky safe example</button>
+    </div>
+    <div class="meter"><div id="bar"></div></div>
+    <div class="stats"><span class="label" id="lbl">Paste an email…</span><span id="meta"></span></div>
+    <ul id="checks"></ul>
+    <div id="urls"></div>
+    <div id="words"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Model accuracy <span class="tag">Naive Bayes</span></h2>
+    <div class="scroll"><table class="cm" id="cm"></table></div>
+    <div class="metrics" id="metrics"></div>
+    <p class="note" id="trainnote"></p>
+    <div class="btns"><button class="ghost" id="retrain" type="button">Retrain on new data</button></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Features used</h2>
+    <p class="note" style="margin:0 0 10px">The model reads the words in the email and these link signals, extracted from every URL.</p>
+    <div class="chips" id="feat"></div>
+    <p class="note">The training emails are generated in the page, so the accuracy shows how the pipeline works and is higher than you would get on real mail. The Python project trains the same idea with scikit-learn on a real dataset.</p>
+  </div>
+</div>
+
+<script>
+/* ---------- seeded random + synthetic dataset ---------- */
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const BRANDS=["PayPal","Amazon","Netflix","Microsoft","Apple","HDFC Bank","SBI","Google","Facebook","DHL"];
+const PH_TLD=["xyz","top","tk","info","click","ru","cn","online"];
+const LEGIT_DOM=["github.com","docs.google.com","www.linkedin.com","zoom.us","www.python.org","medium.com","www.wikipedia.org","calendar.google.com","www.coursera.org","slack.com"];
+const CO_DOM=["acme.com","initech.com","globex.com","citchennai.net","contoso.com"];
+const SHORTENERS=["bit.ly","tinyurl.com","goo.gl","t.co","rb.gy"];
+const PHISH_T=[
+"Dear customer, your {b} account has been suspended due to unusual activity. Verify your identity immediately at {u} to avoid permanent closure.",
+"URGENT: We detected a suspicious login to your {b} account. Confirm your password within 24 hours: {u}",
+"Congratulations! You have won a $1000 {b} gift card. Claim your prize now before it expires: {u}",
+"Your {b} payment failed. Update your billing information immediately to keep your subscription active. Click here: {u}",
+"Security alert: your {b} account will be locked. Click the link below to verify your account details and restore access. {u}",
+"Final notice: unpaid invoice attached. Your account will be terminated unless you login and pay now at {u}",
+"Dear user, your mailbox is almost full. Click {u} to upgrade storage and validate your email password or lose all messages.",
+"{b} support: we could not deliver your package. Confirm your address and pay a small fee at {u}",
+"ACTION REQUIRED!!! Verify your bank details and social security number to avoid account suspension. Login: {u}",
+"You have received a refund of $249.99 from {b}. Provide your card number and PIN at {u} to receive the funds."];
+const PHISH_NOURL=[
+"Dear {b} user, your account is on hold. Reply to this email with your password and date of birth to verify your identity immediately.",
+"URGENT: wire transfer needed today. Reply with your bank account number and I will send the details. Keep this confidential.",
+"Your {b} account has been compromised. Send us your login credentials and card details to restore access within 24 hours.",
+"Congratulations, you are the lucky winner of our lottery! Reply with your full name, address and bank details to claim your prize."];
+const LEGIT_T=[
+"Hi team, attaching the notes from today's meeting. The next sprint review is on Thursday at 3 PM. Agenda and docs: {u}",
+"Hello, your order #{n} has shipped and will arrive on Friday. You can track it from your account page at {u}",
+"Thanks for registering for the webinar on machine learning. Join using this link when it starts: {u}",
+"Reminder: the quarterly report is due next week. Please upload your section to the shared folder: {u}",
+"Hi, please find the lecture slides and assignment for this week here: {u}. Let me know if you have questions.",
+"Your receipt for the monthly subscription is below. No action is needed. Manage your plan anytime at {u}",
+"Happy birthday! The team has signed a card for you. Hope you have a wonderful day. Cake in the cafeteria at 4.",
+"Hi John, can we move our one-on-one to Wednesday? I have a clash with the client call. Calendar invite: {u}",
+"Weekly newsletter: new tutorials on Python, data science and cloud. Read the latest posts at {u}",
+"Please review the pull request when you get a chance: {u}. Tests are passing and the changes are small.",
+"Lunch plans for Friday? Thinking of trying the new place near the office. Let me know if you are in.",
+"The campus placement orientation is scheduled for Monday at 10 AM in the main auditorium. Details here: {u}"];
+const LEGIT_HARD=[
+"Urgent: the server maintenance window is tonight at 11 PM. Please save your work and log out before then. Status page: {u}",
+"Security reminder from IT: we are rolling out two-factor authentication next month. Setup guide: {u}. Never share your password with anyone.",
+"Your {b} verification code is {n}. It expires in 10 minutes. If you did not request this, ignore this message.",
+"Important: please confirm your attendance for Friday's workshop by replying to this email. Thanks!",
+"Invoice #{n} for last month's consulting work is attached. Payment is due within 30 days. Questions? Reply here."];
+
+function makeData(seed,nEach){
+  const R=rng(seed),pick=a=>a[Math.floor(R()*a.length)],int=(a,b)=>a+Math.floor(R()*(b-a+1));
+  const rid=n=>{let s="";for(let i=0;i<n;i++)s+=pick("abcdefghijklmnopqrstuvwxyz0123456789");return s};
+  const phishUrl=()=>{const b=pick(BRANDS).toLowerCase().replace(/ /g,"");switch(pick(["look","ip","short","at","sub","https"])){
+    case"look":return`http://${b}-secure-login.${pick(PH_TLD)}/verify?id=${rid(10)}`;
+    case"ip":return`http://${int(1,254)}.${int(0,254)}.${int(0,254)}.${int(1,254)}/${b}/signin.php?session=${rid(8)}`;
+    case"short":return`http://${pick(SHORTENERS)}/${rid(7)}`;
+    case"at":return`http://${b}.com@${rid(5)}.${pick(PH_TLD)}/login`;
+    case"sub":return`http://${b}.account.update.security.${rid(5)}.${pick(PH_TLD)}/confirm`;
+    default:return`https://${b}-support-${rid(4)}.${pick(PH_TLD)}/auth/${rid(12)}`}};
+  const legitUrl=()=>R()<.33?`https://${pick(LEGIT_DOM)}/${rid(8)}`:`https://www.${pick(CO_DOM)}/${pick(["reports","wiki","hr","projects"])}/${rid(5)}`;
+  const rows=[];
+  for(let i=0;i<nEach;i++){
+    const b=pick(BRANDS);
+    let t=R()<.12?pick(PHISH_NOURL).replace("{b}",b):pick(PHISH_T).replace("{b}",b).replace("{u}",phishUrl());
+    if(R()<.15)t=t.toLowerCase();
+    rows.push({text:t,label:1});
+    const tpl=R()<.2?pick(LEGIT_HARD):pick(LEGIT_T);
+    rows.push({text:tpl.replace("{b}",pick(BRANDS)).replace("{u}",legitUrl()).replace("{n}",int(10000,99999)),label:0});
+  }
+  for(let i=rows.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[rows[i],rows[j]]=[rows[j],rows[i]]}
+  return rows;
+}
+
+/* ---------- feature extraction ---------- */
+const URL_RE=/(https?:\/\/[^\s<>"']+|www\.[^\s<>"']+)/gi;
+const SHORT=new Set(["bit.ly","tinyurl.com","goo.gl","t.co","rb.gy","ow.ly","is.gd"]);
+const SUSP=new Set(["xyz","top","tk","info","click","ru","cn","online","work","gq","ml"]);
+function urlInfo(raw){
+  const u=raw.replace(/[.,;)]+$/,""),full=/^https?:/i.test(u)?u:"http://"+u;
+  const m=full.match(/^(https?):\/\/([^\/?#]*)/i),netloc=m?m[2]:"";
+  const host=netloc.split("@").pop().split(":")[0].toLowerCase();
+  return{url:u,host,ip:/^\d{1,3}(\.\d{1,3}){3}$/.test(host),at:netloc.includes("@"),short:SHORT.has(host),
+    tld:host.includes(".")&&SUSP.has(host.split(".").pop()),http:!!m&&m[1].toLowerCase()==="http",
+    hyph:host.includes("-"),deep:host.split(".").length-2>=3};
+}
+function tokens(text){
+  const urls=(text.match(URL_RE)||[]).map(urlInfo),out=[];
+  if(!urls.length)out.push("__nourl");
+  urls.forEach(u=>{out.push("__url");if(u.ip)out.push("__ipurl");if(u.at)out.push("__aturl");if(u.short)out.push("__shortener");
+    if(u.tld)out.push("__susptld");if(u.http)out.push("__nohttps");if(u.hyph)out.push("__hyphenhost");if(u.deep)out.push("__deepsubdomain")});
+  (text.replace(URL_RE," ").toLowerCase().match(/[a-z]{3,}/g)||[]).forEach(w=>out.push(w));
+  return out;
+}
+
+/* ---------- Naive Bayes ---------- */
+function train(docs){
+  const cnt=[new Map(),new Map()],tot=[0,0],n=[0,0],vocab=new Set();
+  docs.forEach(d=>{n[d.label]++;new Set(tokens(d.text)).forEach(t=>{cnt[d.label].set(t,(cnt[d.label].get(t)||0)+1);tot[d.label]++;vocab.add(t)})});
+  return{cnt,tot,n,vocab,V:vocab.size};
+}
+const lp=(m,l,t)=>Math.log(((m.cnt[l].get(t)||0)+1)/(m.tot[l]+m.V));
+function score(m,text){
+  let lo=Math.log(m.n[1]/m.n[0]);const contrib=[];
+  new Set(tokens(text)).forEach(t=>{if(!m.vocab.has(t))return;const d=lp(m,1,t)-lp(m,0,t);lo+=d;contrib.push([t,d])});
+  return{p:1/(1+Math.exp(-lo)),contrib};
+}
+function evaluate(seed){
+  const data=makeData(seed,700),cut=Math.floor(data.length*.8),tr=data.slice(0,cut),te=data.slice(cut);
+  const m=train(tr),cm=[[0,0],[0,0]];
+  te.forEach(d=>{cm[d.label][score(m,d.text).p>=.5?1:0]++});
+  return{m,cm,nTrain:tr.length,nTest:te.length};
+}
+
+/* ---------- readable red-flag checks ---------- */
+const URGENT=["urgent","immediately","verify","suspended","password","confirm","locked","expire","within 24 hours","action required","final notice","click here","terminated","avoid"];
+function signals(text){
+  const urls=(text.match(URL_RE)||[]).map(urlInfo),low=text.toLowerCase();
+  const urg=URGENT.filter(k=>low.includes(k)).length,letters=text.replace(/[^A-Za-z]/g,"");
+  const caps=letters.length>20&&letters.replace(/[^A-Z]/g,"").length/letters.length>.35;
+  return{urls,checks:[
+    {ok:!urls.some(u=>u.ip),t:"No links that use an IP address"},
+    {ok:!urls.some(u=>u.short),t:"No shortened links (bit.ly, tinyurl)"},
+    {ok:!urls.some(u=>u.at),t:"No '@' trick inside a link"},
+    {ok:!urls.some(u=>u.tld||u.hyph||u.deep),t:"No look-alike or odd domains"},
+    {ok:!urls.some(u=>u.http),t:"Every link uses HTTPS"},
+    {ok:urg<3,t:"No pile-up of urgent or threatening words"},
+    {ok:!/(reply|send|provide|enter|confirm|verify).{0,40}(password|\bpin\b|card number|credentials|bank|social security|ssn)/i.test(text),t:"Does not ask for passwords, card or bank details"},
+    {ok:(text.match(/!/g)||[]).length<3&&!caps,t:"Calm tone (few exclamation marks, not all caps)"}]};
+}
+
+/* ---------- UI ---------- */
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+let seed=7,model=evaluate(seed);
+const EX={
+ex1:"URGENT: Your PayPal account has been suspended due to unusual activity. Verify your password immediately at http://paypal-secure-login.xyz/verify?id=88213 or your account will be permanently locked within 24 hours!",
+ex2:"Hi team, notes from today's meeting are in the shared folder: https://docs.google.com/document/d/8f2k1x. Sprint review is Thursday at 3 PM. Let me know if anything is missing.",
+ex3:"Security reminder from IT: two-factor authentication becomes mandatory next month. Setup guide: https://www.acme.com/wiki/2fa. Never share your password with anyone."};
+
+function render(){
+  const text=$("mail").value.trim();
+  if(!text){
+    $("bar").style.width="0";$("lbl").textContent="Paste an email…";$("lbl").style.color="";$("meta").textContent="";
+    $("checks").innerHTML="";$("urls").innerHTML="";$("words").innerHTML="";return;
+  }
+  const r=score(model.m,text),s=signals(text),phish=r.p>=.5,col=phish?"var(--bad)":"var(--ok)";
+  $("bar").style.width=Math.max(2,r.p*100)+"%";$("bar").style.background=col;
+  $("lbl").textContent=phish?"Phishing":"Safe";$("lbl").style.color=col;
+  const flags=s.checks.filter(c=>!c.ok).length;
+  $("meta").textContent=`${(r.p*100).toFixed(1)}% phishing · ${s.urls.length} link${s.urls.length===1?"":"s"} · ${flags} red flag${flags===1?"":"s"}`;
+  $("checks").innerHTML=s.checks.map(c=>`<li><span class="ic ${c.ok?"y":"n"}">${c.ok?"✓":"✕"}</span>${c.t}</li>`).join("");
+  const names=[["ip","IP address host"],["at","'@' in link"],["short","URL shortener"],["tld","suspicious ending"],["hyph","hyphenated host"],["deep","deep subdomains"],["http","no HTTPS"]];
+  $("urls").innerHTML=s.urls.length?`<div class="sub2">Links found</div>`+s.urls.map(u=>{const f=names.filter(n=>u[n[0]]).map(n=>n[1]);
+    return`<div class="sug"><code>${esc(u.url)}</code><span class="flags ${f.length?"bad":"ok"}">${f.length?f.join(" · "):"no red flags"}</span></div>`}).join(""):"";
+  const real=r.contrib.filter(c=>!c[0].startsWith("__")||true).sort((a,b)=>b[1]-a[1]);
+  const hot=real.filter(c=>c[1]>0.5).slice(0,8),cool=real.filter(c=>c[1]<-0.5).reverse().slice(0,6);
+  const nice=t=>t.replace(/^__/,"link: ");
+  $("words").innerHTML=(hot.length?`<div class="sub2">Pushed toward Phishing</div><div class="chips">${hot.map(c=>`<span class="chip hot">${esc(nice(c[0]))}</span>`).join("")}</div>`:"")+
+    (cool.length?`<div class="sub2">Pushed toward Safe</div><div class="chips">${cool.map(c=>`<span class="chip cool">${esc(nice(c[0]))}</span>`).join("")}</div>`:"");
+}
+
+function drawModel(){
+  const[[tn,fp],[fn,tp]]=model.cm,tot=tn+fp+fn+tp,acc=(tn+tp)/tot,pr=tp+fp?tp/(tp+fp):0,rc=tp+fn?tp/(tp+fn):0,f1=pr+rc?2*pr*rc/(pr+rc):0;
+  $("cm").innerHTML=`<tr><th></th><th>Predicted Safe</th><th>Predicted Phishing</th></tr>
+  <tr><th class="row">Actual Safe</th><td class="good"><b>${tn}</b><span>true negatives</span></td><td class="err ${fp?"has":""}"><b>${fp}</b><span>false alarms</span></td></tr>
+  <tr><th class="row">Actual Phishing</th><td class="err ${fn?"has":""}"><b>${fn}</b><span>missed phishing</span></td><td class="good"><b>${tp}</b><span>true positives</span></td></tr>`;
+  const p=x=>(x*100).toFixed(1)+"%";
+  $("metrics").innerHTML=[["Accuracy",acc],["Precision",pr],["Recall",rc],["F1 score",f1]].map(a=>`<div class="metric"><b>${p(a[1])}</b><span>${a[0]}</span></div>`).join("");
+  $("trainnote").textContent=`Trained on ${model.nTrain} emails, tested on ${model.nTest} emails the model had not seen (80/20 split). Vocabulary: ${model.m.V} features.`;
+}
+$("feat").innerHTML=["email words","link: url count","link: IP address","link: @ in URL","link: shortener","link: suspicious ending","link: no HTTPS","link: hyphenated host","link: deep subdomain","no link at all"].map(f=>`<span class="chip">${f}</span>`).join("");
+["ex1","ex2","ex3"].forEach(id=>$(id).onclick=()=>{$("mail").value=EX[id];render()});
+$("mail").addEventListener("input",render);
+$("retrain").onclick=()=>{seed+=1;model=evaluate(seed);drawModel();render()};
+$("mail").value=EX.ex1;drawModel();render();
+</script>
+
+</body></html>
